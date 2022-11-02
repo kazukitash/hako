@@ -1,20 +1,32 @@
-# Ubuntuは20.04を入れている
-FROM ubuntu:focal
+# devcontainer用のUbuntu-20.04 Image
+FROM mcr.microsoft.com/vscode/devcontainers/base:ubuntu-20.04
+
+# apt-getでUIを使うインストールを避ける
+ENV DEBIAN_FRONTEND noninteractive
+
+# Localeの設定
+RUN export LC_ALL=C
+
+# タイムゾーンの設定
 RUN apt-get update && apt-get install -y tzdata
-# timezone setting
-ENV TZ=Asia/Tokyo
-# git curl build-essential と python ruby-build に必要な package をインストールする
-RUN apt-get update && apt-get upgrade -y && apt-get install -y \
-  git curl build-essential openssl \
-  libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
-  autoconf bison patch build-essential rustc libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libgmp-dev libncurses5-dev libffi-dev libgdbm6 libgdbm-dev libdb-dev uuid-dev
-# linuxbrew は root で入れられないので linuxbrew ユーザーを作成する
-RUN useradd -m linuxbrew
-RUN chmod 755 /home/linuxbrew
-RUN echo 'eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)' >>/etc/profile.d/.zshenv
-USER linuxbrew
+ENV TZ Asia/Tokyo
+
+# 基本パッケージをインストール
+RUN apt-get update && apt-get install -y build-essential procps curl file wget git
+
+# ruby-build用のパッケージをインストール
+RUN apt-get update && apt-get install -y autoconf bison patch build-essential rustc libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libgmp-dev libncurses5-dev libffi-dev libgdbm6 libgdbm-dev libdb-dev uuid-dev
+
+# python用のパッケージをインストール
+RUN apt-get update && apt-get install -y libbz2-dev libreadline-dev liblzma-dev libncursesw5-dev libsqlite3-dev uuid-dev tk-dev
+
+# aptのcacheを消す
+RUN apt-get clean
+
+USER vscode
 RUN /bin/bash -c "$(curl -L raw.githubusercontent.com/kazukitash/dotfiles/main/install.sh)"
-# default shell を zsh にする
+
+# デフォルトシェルをzshにする
 USER root
-RUN echo /home/linuxbrew/.linuxbrew/bin/zsh >>/etc/shells
-RUN chsh -s /home/linuxbrew/.linuxbrew/bin/zsh
+RUN chsh vscode -s /home/linuxbrew/.linuxbrew/bin/zsh
+CMD ["/home/linuxbrew/.linuxbrew/bin/zsh"]

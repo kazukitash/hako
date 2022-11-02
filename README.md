@@ -4,7 +4,6 @@
 
 ```bash
 docker login
-docker build -t hako .
-docker image tag hako kazukitash/hako:latest
+docker build --no-cache -t kazukitash/hako:latest .
 docker image push kazukitash/hako:latest
 ```
